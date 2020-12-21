@@ -422,7 +422,12 @@ func (g *genericScheduler) getLowerPriorityNominatedPods(pod *v1.Pod, nodeName s
 	var lowerPriorityPods []*v1.Pod
 	podPriority := podutil.GetPodPriority(pod)
 	for _, p := range pods {
-		if podutil.GetPodPriority(p) < podPriority {
+		pass,err := podutil.IsCrobJobPodRunNotInConfigTimeSlot(p)
+		if err != nil {
+			klog.V(5).Infof("Pod %v/%v check config time slot failed:%s.", p.Namespace, p.Name, err.Error())
+		}
+
+		if podutil.GetPodPriority(p) < podPriority || (pass && podutil.GetPodPriority(p) == podPriority) {
 			lowerPriorityPods = append(lowerPriorityPods, p)
 		}
 	}
@@ -1151,7 +1156,12 @@ func (g *genericScheduler) selectVictimsOnNode(
 			continue
 		}
 
-		if podutil.GetPodPriority(p) < podPriority {
+		pass,err := podutil.IsCrobJobPodRunNotInConfigTimeSlot(p)
+		if err != nil {
+			klog.V(5).Infof("Pod %v/%v check config time slot failed:%s.", p.Namespace, p.Name, err.Error())
+		}
+
+		if podutil.GetPodPriority(p) < podPriority || (pass && podutil.GetPodPriority(p) == podPriority){
 			potentialVictims = append(potentialVictims, p)
 			if err := removePod(p); err != nil {
 				return nil, 0, false
@@ -1249,6 +1259,21 @@ func podEligibleToPreemptOthers(pod *v1.Pod, nodeNameToInfo map[string]*schedule
 		if nodeInfo, found := nodeNameToInfo[nomNodeName]; found {
 			podPriority := podutil.GetPodPriority(pod)
 			for _, p := range nodeInfo.Pods() {
+				if p.DeletionTimestamp != nil {
+					pass,err := podutil.IsCrobJobPodRunNotInConfigTimeSlot(p)
+					if err != nil {
+						klog.V(5).Infof("Pod %v/%v check config time slot failed:%s.", p.Namespace, p.Name, err.Error())
+					}else {
+						if pass {
+							if podutil.GetPodPriority(p) == podPriority {
+								// There is a terminating cron job pod on the nominated node.
+								return false
+							}
+						}
+					}
+
+				}
+
 				if p.DeletionTimestamp != nil && podutil.GetPodPriority(p) < podPriority {
 					// There is a terminating pod on the nominated node.
 					return false
