@@ -98,6 +98,11 @@ type SchedulingQueue interface {
 	DeleteNominatedPodIfExists(pod *v1.Pod)
 	// NumUnschedulablePods returns the number of unschedulable pods exist in the SchedulingQueue.
 	NumUnschedulablePods() int
+
+    AddNorminatedPods(pod *v1.Pod) error
+    UpdateNorminatedPods(oldPod, newPod *v1.Pod) error
+    DeleteNorminatedPods(pod *v1.Pod) error
+
 }
 
 // NewSchedulingQueue initializes a priority queue as a new scheduling queue.
@@ -416,6 +421,33 @@ func (p *PriorityQueue) flushBackoffQCompleted() {
 		p.activeQ.Add(rawPodInfo)
 		defer p.cond.Broadcast()
 	}
+}
+
+// Update updates pod Norminated info not assigened to this scheduler
+func (p *PriorityQueue) AddNorminatedPods(pod *v1.Pod) error {
+	p.lock.Lock()
+	defer p.lock.Unlock()
+
+	p.nominatedPods.add(pod,"")
+	return nil
+}
+
+// Update updates pod Norminated info not assigened to this scheduler
+func (p *PriorityQueue) UpdateNorminatedPods(oldPod, newPod *v1.Pod) error {
+	p.lock.Lock()
+	defer p.lock.Unlock()
+
+	p.nominatedPods.update(oldPod, newPod)
+	return nil
+}
+
+// Delete pod Norminated info not assigened to this scheduler
+func (p *PriorityQueue) DeleteNorminatedPods(pod *v1.Pod) error {
+	p.lock.Lock()
+	defer p.lock.Unlock()
+
+	p.nominatedPods.delete(pod)
+	return nil
 }
 
 // flushUnschedulableQLeftover moves pod which stays in unschedulableQ longer than the durationStayUnschedulableQ
