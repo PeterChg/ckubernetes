@@ -257,7 +257,7 @@ func (sched *Scheduler) addPodNominateInfo(obj interface{}) {
 		utilruntime.HandleError(fmt.Errorf("unable to queue %T: %v", obj, err))
 		return
 	}
-	klog.Infof("add pod:%s nominate info", obj.(*v1.Pod).Name)
+	klog.V(5).Infof("add pod:%s nominate info", obj.(*v1.Pod).Name)
 }
 
 func (sched *Scheduler) updatePodNominateInfo(oldObj, newObj interface{}) {
@@ -269,7 +269,7 @@ func (sched *Scheduler) updatePodNominateInfo(oldObj, newObj interface{}) {
 		utilruntime.HandleError(fmt.Errorf("unable to update %T: %v", newObj, err))
 		return
 	}
-	klog.Infof("update pod:%s nominate info", pod.Name)
+	klog.V(5).Infof("update pod:%s nominate info", pod.Name)
 }
 
 func (sched *Scheduler) deletePodNominateInfo(obj interface{}) {
@@ -292,7 +292,7 @@ func (sched *Scheduler) deletePodNominateInfo(obj interface{}) {
 		utilruntime.HandleError(fmt.Errorf("unable to dequeue %T: %v", obj, err))
 		return
 	}
-	klog.Infof("delete pod:%s nominate info", pod.Name)
+	klog.V(5).Infof("delete pod:%s nominate info", pod.Name)
 }
 
 func (sched *Scheduler) addPodToCache(obj interface{}) {
