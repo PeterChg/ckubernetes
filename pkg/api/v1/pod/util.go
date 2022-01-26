@@ -362,3 +362,14 @@ func IsCrobJobPodRunNotInConfigTimeSlot(pod *v1.Pod) (bool, error){
 
 	return cronStandardNextStartTime.Before(cronStandardNextStopTime), nil
 }
+
+func IsColocatePod(pod *v1.Pod, node *v1.Node) bool {
+	nOwner := ""
+	fit := false
+
+	if nOwner, fit = node.Labels["xiaomi/node-owner"]; !fit {
+		return false
+	}
+
+	return pod.Namespace == nOwner
+}
