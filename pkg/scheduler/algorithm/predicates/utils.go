@@ -147,3 +147,11 @@ func isCSIMigrationOn(csiNode *storagev1beta1.CSINode, pluginName string) bool {
 
 	return mpaSet.Has(pluginName)
 }
+
+// check current node whether ECI vnode
+func isECIVnode(node *v1.Node) bool {
+	if value, exist := node.Labels["k8s.aliyun.com/vnode"]; exist {
+		return strings.Compare("true", value) == 0
+	}
+	return false
+}
