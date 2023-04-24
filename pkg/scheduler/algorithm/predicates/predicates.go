@@ -980,7 +980,10 @@ func PodMatchesNodeSelectorAndAffinityTerms(pod *v1.Pod, node *v1.Node) bool {
 		// Match node selector for requiredDuringSchedulingIgnoredDuringExecution.
 		if nodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution != nil {
 			//ECI vnode skip node Affinity check, by default
-			if isECIVnode(node) {
+			//But if pod created by daemonset, ignore pod nodeAffinity will lead to some non-eci nodes have none daemonset pod,
+			//while ECI node have more than one daemonset pod. This results in daemonset controller unlimited create pod in some nodes,
+			//and unlimited delete pod in ECI node.
+			if isECIVnode(node) && !isDaemonsetPod(pod) {
 				return nodeAffinityMatches
 			}
 			nodeSelectorTerms := nodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution.NodeSelectorTerms

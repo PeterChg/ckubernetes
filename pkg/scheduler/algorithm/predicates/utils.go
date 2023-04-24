@@ -155,3 +155,18 @@ func isECIVnode(node *v1.Node) bool {
 	}
 	return false
 }
+
+// check current pod whether daemonset pod
+func isDaemonsetPod(pod *v1.Pod) bool {
+	ownerReference := pod.GetOwnerReferences()
+	if 0 == len(ownerReference) {
+		return false
+	}
+
+	for _, refer := range ownerReference {
+		if refer.Kind == "DaemonSet" {
+			return true
+		}
+	}
+	return false
+}
